@@ -1,6 +1,6 @@
 package login
 
-func Login() {
+func Login(username string, password string) {
 	
 }
 

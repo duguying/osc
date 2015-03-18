@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/duguying/osc/init"
+	"github.com/duguying/osc/initial"
 )
 
 func main() {
-	init.Run()
+	initial.Run()
 }
