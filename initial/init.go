@@ -2,6 +2,8 @@ package initial
 
 import (
   "os"
+  "path/filepath"
+  "github.com/gogather/com"
   "github.com/gogather/com/log"
   "github.com/duguying/osc/login"
   "github.com/duguying/osc/tweet"
@@ -13,6 +15,8 @@ const (
 )
 
 func Run() {
+	initProfileDir()
+
 	length := len(os.Args)
 
 	username := ""
@@ -58,6 +62,23 @@ func showHelp() {
 	log.Blueln(  "version",VERSION)
 }
 
+func initProfileDir() {
+	home, err := Home()
+	if err!=nil {
+		log.Fatalln("Can NOT find user path!")
+	}
+
+	path := filepath.Join(home, ".osc")
+
+	if !com.FileExist(path) {
+		err = com.Mkdir(path)
+		if err != nil {
+			log.Fatalln("Create profile directory failed!")
+		}
+	}
+}
+
 func readConfig() {
 
 }
+
