@@ -1,4 +1,4 @@
-package initial
+package utils
 
 import (
 	"os"

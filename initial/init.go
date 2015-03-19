@@ -7,6 +7,7 @@ import (
   "github.com/gogather/com/log"
   "github.com/duguying/osc/login"
   "github.com/duguying/osc/tweet"
+  "github.com/duguying/osc/utils"
   "fmt"
 )
 
@@ -63,15 +64,11 @@ func showHelp() {
 }
 
 func initProfileDir() {
-	home, err := Home()
-	if err!=nil {
-		log.Fatalln("Can NOT find user path!")
-	}
-
+	home := utils.GetHome()
 	path := filepath.Join(home, ".osc")
 
 	if !com.FileExist(path) {
-		err = com.Mkdir(path)
+		err := com.Mkdir(path)
 		if err != nil {
 			log.Fatalln("Create profile directory failed!")
 		}
