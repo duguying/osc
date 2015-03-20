@@ -54,11 +54,11 @@ type Http struct {
 	cookies *Jar
 }
 
-func (this *Http) Post(urlstr string, parm url.Values) string {
+func (this *Http) Post(urlstr string, parm url.Values) (string, error) {
 	home := GetHome()
 	u, err := url.Parse(urlstr)
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	pathOscid := filepath.Join(home, ".osc", "oscid")
@@ -73,27 +73,39 @@ func (this *Http) Post(urlstr string, parm url.Values) string {
 
 	// post
     client := http.Client{nil, nil, jar, 0}
-    resp, _ := client.PostForm(urlstr, parm)
-    b, _ := ioutil.ReadAll(resp.Body)
-    resp.Body.Close()
+    resp, err := client.PostForm(urlstr, parm)
+    
+    if err!=nil {
+    	return "", err
+    }
 
+    b, err := ioutil.ReadAll(resp.Body)
+    resp.Body.Close()
+    if err != nil {
+    	return "", err
+    }
+    
 	// store cookie
 	cookieMap := jar.Cookies(u)
 	length := len(cookieMap)
 	// log.Greenln(length)
 	if length>0 {
-		co, _ := com.JsonEncode(cookieMap[length-1])
+		co, err := com.JsonEncode(cookieMap[length-1])
+		if err!=nil {
+			return "", err
+		}
+
 		com.WriteFile(pathOscid, co)
 	}
 	
-    return string(b)
+    return string(b), err
 }
 
-func (this *Http) Get(urlstr string) string {
+func (this *Http) Get(urlstr string) (string, error) {
 	home := GetHome()
 	u, err := url.Parse(urlstr)
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	pathOscid := filepath.Join(home, ".osc", "oscid")
@@ -108,18 +120,29 @@ func (this *Http) Get(urlstr string) string {
 
 	// get
     client := http.Client{nil, nil, jar, 0}
-    resp, _ := client.Get(urlstr)
-    b, _ := ioutil.ReadAll(resp.Body)
+    resp, err := client.Get(urlstr)
+    if err!=nil {
+    	return "", err
+    }
+
+    b, err := ioutil.ReadAll(resp.Body)
     resp.Body.Close()
+    if err!=nil {
+    	return "", err
+    }
 
     // store cookie
 	cookieMap := jar.Cookies(u)
 	length := len(cookieMap)
 	// log.Greenln(length)
 	if length>0 {
-		co, _ := com.JsonEncode(cookieMap[length-1])
+		co, err := com.JsonEncode(cookieMap[length-1])
+		if err!=nil {
+			return "", err
+		}
+		
 		com.WriteFile(pathOscid, co)
 	}
 
-    return string(b)
+    return string(b), err
 }

@@ -20,14 +20,38 @@ func Login(username string, password string) {
 
 	
 	http := &utils.Http{}
-	response := http.Post("https://www.oschina.net/action/user/hash_login",url.Values{
+	response, err := http.Post("https://www.oschina.net/action/user/hash_login",url.Values{
 		"email" : {username},
 		"pwd" : {password},
 		"save_login" : {"1"},
 		})
 
-	response = http.Get("http://my.oschina.net/duguying/admin/portrait")
-	log.Greenln(response)
+	if err!=nil {
+		log.Warnln("请检查网络")
+		return
+	}
+
+	// log.Blueln(response)
+	json, err := com.JsonDecode(response)
+	if err==nil {
+		msg, _ := json.(map[string]interface{})["msg"].(string)
+		
+		errorCode, ok := json.(map[string]interface{})["error"].(float64)
+		if ok {
+			log.Redf("error[%d] %s,%s\n", int(errorCode), msg, "请去网页版登录")
+			return
+		}
+
+		failCount, ok := json.(map[string]interface{})["failCount"].(float64)
+		if ok {
+			log.Redln(msg)
+			log.Warnln("你还有", 3 - int(failCount), "次尝试的机会")
+		}else{
+			log.Redln("Invalid Response")
+		}
+	}else{
+		log.Greenln("登录成功")
+	}
 }
 
 func storeSess() {
