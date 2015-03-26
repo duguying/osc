@@ -1,14 +1,14 @@
 package initial
 
 import (
-  "os"
-  "path/filepath"
-  "github.com/gogather/com"
-  "github.com/gogather/com/log"
-  "github.com/duguying/osc/login"
-  "github.com/duguying/osc/tweet"
-  "github.com/duguying/osc/utils"
-  "fmt"
+	"fmt"
+	"github.com/duguying/osc/login"
+	"github.com/duguying/osc/tweet"
+	"github.com/duguying/osc/utils"
+	"github.com/gogather/com"
+	"github.com/gogather/com/log"
+	"os"
+	"path/filepath"
 )
 
 const (
@@ -23,44 +23,47 @@ func Run() {
 	username := ""
 	password := ""
 	message := ""
-	
+
 	if length < 2 {
 		showHelp()
-	}else{
+	} else {
 		if os.Args[1] == "login" {
 			if length < 4 {
 				log.Dangerln("Invalid command, please use")
-				log.Warnln(  "    osc login username password")
-			}else{
+				log.Warnln("    osc login username password")
+			} else {
 				username = os.Args[2]
 				password = os.Args[3]
 
 				login.Login(username, password)
 			}
-		}else if os.Args[1] == "tweet" {
+		} else if os.Args[1] == "tweet" {
 			if length < 3 {
 				log.Dangerln("Invalid command, please use")
-				log.Warnln(  "    osc tweet message")
-			}else{
+				log.Warnln("    osc tweet message")
+			} else {
 				message = os.Args[2]
 
 				tweet.Tweet(message)
 			}
-		}else if os.Args[1] == "help" {
+		} else if os.Args[1] == "status" {
+			login.GetStatus()
+		} else if os.Args[1] == "help" {
 			showHelp()
-		}else{
+		} else {
 			log.Dangerln("Invalid command, please use")
-				log.Warnln(  "    osc help")
+			log.Warnln("    osc help")
 		}
 	}
 }
 
 func showHelp() {
-	log.Warnln(  "oschina command line tool")
-	fmt.Println( "Usage:")
-	fmt.Println( "    login user password")
-	fmt.Println( "    tweet message")
-	log.Blueln(  "version",VERSION)
+	log.Warnln("oschina command line tool")
+	fmt.Println("Usage:")
+	fmt.Println("    login user password")
+	fmt.Println("    status")
+	fmt.Println("    tweet message")
+	log.Blueln("version", VERSION)
 }
 
 func initProfileDir() {
@@ -78,4 +81,3 @@ func initProfileDir() {
 func readConfig() {
 
 }
-
