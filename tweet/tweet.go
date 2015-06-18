@@ -6,6 +6,7 @@ import (
 	"github.com/gogather/com/log"
 	"net/url"
 	"path/filepath"
+	"regexp"
 )
 
 func Tweet(message string) {
@@ -74,4 +75,26 @@ func Tweet(message string) {
 		}
 	}
 
+}
+
+func Joke() {
+	api := `http://www.tuling123.com/openapi/api?key=380abd77ba6541dd1dee43220c42776b&info=%E8%AE%B2%E4%B8%AA%E7%AC%91%E8%AF%9D`
+	http := &utils.Http{}
+	msg, err := http.Get(api)
+	if err != nil {
+		log.Redln(err)
+	}
+
+	data, err := com.JsonDecode(msg)
+	if err != nil {
+		log.Redln(err)
+	}
+
+	json := data.(map[string]interface{})
+	msg = json["text"].(string)
+
+	reg := regexp.MustCompile(`<[\d\D]+>`)
+	msg = reg.ReplaceAllString(msg, "")
+
+	Tweet(msg)
 }

@@ -48,6 +48,8 @@ func Run() {
 			}
 		} else if os.Args[1] == "status" {
 			login.GetStatus()
+		} else if os.Args[1] == "joke" {
+			tweet.Joke()
 		} else if os.Args[1] == "help" {
 			showHelp()
 		} else {
