@@ -96,5 +96,7 @@ func Joke() {
 	reg := regexp.MustCompile(`<[\d\D]+>`)
 	msg = reg.ReplaceAllString(msg, "")
 
+	msg = com.SubString(msg, 0, 190)
+
 	Tweet(msg)
 }
