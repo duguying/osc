@@ -28,6 +28,7 @@ func Login(username string, password string) {
 
 	if err != nil {
 		log.Warnln("请检查网络")
+		log.Redln(err)
 		return
 	}
 
