@@ -100,3 +100,27 @@ func Joke() {
 
 	Tweet(msg)
 }
+
+func Weather(location string) {
+	api := `http://www.tuling123.com/openapi/api?key=380abd77ba6541dd1dee43220c42776b&info=%E4%BB%8A%E5%A4%A9` + location + `%E5%A4%A9%E6%B0%94`
+	http := &utils.Http{}
+	msg, err := http.Get(api)
+	if err != nil {
+		log.Redln(err)
+	}
+
+	data, err := com.JsonDecode(msg)
+	if err != nil {
+		log.Redln(err)
+	}
+
+	json := data.(map[string]interface{})
+	msg = json["text"].(string)
+
+	reg := regexp.MustCompile(`<[\d\D]+>`)
+	msg = reg.ReplaceAllString(msg, "")
+
+	msg = com.SubString(msg, 0, 190)
+
+	Tweet(msg)
+}

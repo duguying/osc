@@ -50,6 +50,12 @@ func Run() {
 			login.GetStatus()
 		} else if os.Args[1] == "joke" {
 			tweet.Joke()
+		} else if os.Args[1] == "weather" {
+			location := "%E6%B7%B1%E5%9C%B3"
+			if len(os.Args) >= 3 {
+				location = os.Args[2]
+			}
+			tweet.Weather(location)
 		} else if os.Args[1] == "help" {
 			showHelp()
 		} else {
