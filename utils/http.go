@@ -1,34 +1,34 @@
 package utils
 
 import (
-    "net/http"
-    "net/url"
-    "io/ioutil"
-    "path/filepath"
-    "sync"
-    "github.com/gogather/com"
-    // "github.com/gogather/com/log"
+	"github.com/gogather/com"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"path/filepath"
+	"sync"
+	// "github.com/gogather/com/log"
 )
 
 type Jar struct {
-    lk      sync.Mutex
-    cookies map[string][]*http.Cookie
+	lk      sync.Mutex
+	cookies map[string][]*http.Cookie
 }
 
 func NewJar() *Jar {
-    jar := new(Jar)
-    jar.cookies = make(map[string][]*http.Cookie)
-    return jar
+	jar := new(Jar)
+	jar.cookies = make(map[string][]*http.Cookie)
+	return jar
 }
 
 func (this *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
-    this.lk.Lock()
-    this.cookies[u.Host] = cookies
-    this.lk.Unlock()
+	this.lk.Lock()
+	this.cookies[u.Host] = cookies
+	this.lk.Unlock()
 }
 
 func (this *Jar) Cookies(u *url.URL) []*http.Cookie {
-    return this.cookies[u.Host]
+	return this.cookies[u.Host]
 }
 
 func (this *Jar) ParseCookies(json string) *http.Cookie {
@@ -62,43 +62,43 @@ func (this *Http) Post(urlstr string, parm url.Values) (string, error) {
 	}
 
 	pathOscid := filepath.Join(home, ".osc", "oscid")
-    jar := NewJar()
+	jar := NewJar()
 
-    // read cookie
+	// read cookie
 	if com.FileExist(pathOscid) {
-		json := com.ReadFile(pathOscid);
+		json, _ := com.ReadFile(pathOscid)
 		c := jar.ParseCookies(json)
 		jar.SetCookies(u, []*http.Cookie{c})
 	}
 
 	// post
-    client := http.Client{nil, nil, jar, 0}
-    resp, err := client.PostForm(urlstr, parm)
-    
-    if err!=nil {
-    	return "", err
-    }
+	client := http.Client{nil, nil, jar, 0}
+	resp, err := client.PostForm(urlstr, parm)
 
-    b, err := ioutil.ReadAll(resp.Body)
-    resp.Body.Close()
-    if err != nil {
-    	return "", err
-    }
-    
+	if err != nil {
+		return "", err
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return "", err
+	}
+
 	// store cookie
 	cookieMap := jar.Cookies(u)
 	length := len(cookieMap)
 	// log.Greenln(length)
-	if length>0 {
+	if length > 0 {
 		co, err := com.JsonEncode(cookieMap[length-1])
-		if err!=nil {
+		if err != nil {
 			return "", err
 		}
 
 		com.WriteFile(pathOscid, co)
 	}
-	
-    return string(b), err
+
+	return string(b), err
 }
 
 func (this *Http) Get(urlstr string) (string, error) {
@@ -109,40 +109,40 @@ func (this *Http) Get(urlstr string) (string, error) {
 	}
 
 	pathOscid := filepath.Join(home, ".osc", "oscid")
-    jar := NewJar()
+	jar := NewJar()
 
-    // read cookie
+	// read cookie
 	if com.FileExist(pathOscid) {
-		json := com.ReadFile(pathOscid);
+		json, _ := com.ReadFile(pathOscid)
 		c := jar.ParseCookies(json)
 		jar.SetCookies(u, []*http.Cookie{c})
 	}
 
 	// get
-    client := http.Client{nil, nil, jar, 0}
-    resp, err := client.Get(urlstr)
-    if err!=nil {
-    	return "", err
-    }
+	client := http.Client{nil, nil, jar, 0}
+	resp, err := client.Get(urlstr)
+	if err != nil {
+		return "", err
+	}
 
-    b, err := ioutil.ReadAll(resp.Body)
-    resp.Body.Close()
-    if err!=nil {
-    	return "", err
-    }
+	b, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return "", err
+	}
 
-    // store cookie
+	// store cookie
 	cookieMap := jar.Cookies(u)
 	length := len(cookieMap)
 	// log.Greenln(length)
-	if length>0 {
+	if length > 0 {
 		co, err := com.JsonEncode(cookieMap[length-1])
-		if err!=nil {
+		if err != nil {
 			return "", err
 		}
-		
+
 		com.WriteFile(pathOscid, co)
 	}
 
-    return string(b), err
+	return string(b), err
 }

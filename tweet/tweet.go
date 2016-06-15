@@ -17,7 +17,7 @@ func Tweet(message string) {
 	home := utils.GetHome()
 	pathUserInfo := filepath.Join(home, ".osc", "userinfo")
 	if com.FileExist(pathUserInfo) {
-		json := com.ReadFile(pathUserInfo)
+		json, _ := com.ReadFile(pathUserInfo)
 		data, err = com.JsonDecode(json)
 		if err != nil {
 			log.Redln("[Error]", "Parse userinfo file failed")
