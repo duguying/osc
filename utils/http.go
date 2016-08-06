@@ -1,79 +1,104 @@
 package utils
 
 import (
-	"github.com/gogather/com"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"sync"
-	// "github.com/gogather/com/log"
+
+	"github.com/gogather/com"
+	"github.com/gogather/com/log"
 )
 
+// Jar - cookie jar
 type Jar struct {
-	lk      sync.Mutex
-	cookies map[string][]*http.Cookie
+	lk          sync.Mutex
+	CookiesData map[string][]*http.Cookie
 }
 
+// NewJar - new a Jar
 func NewJar() *Jar {
 	jar := new(Jar)
-	jar.cookies = make(map[string][]*http.Cookie)
+	jar.CookiesData = make(map[string][]*http.Cookie)
 	return jar
 }
 
-func (this *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
-	this.lk.Lock()
-	this.cookies[u.Host] = cookies
-	this.lk.Unlock()
+func (j *Jar) addCookie(host string, cookie *http.Cookie) {
+	hostCookiesData, ok := j.CookiesData[host]
+	if ok {
+		finded := false
+		for i := 0; i < len(hostCookiesData); i++ {
+			c := hostCookiesData[i]
+			if c.Name == cookie.Name {
+				hostCookiesData[i] = cookie
+				finded = true
+			}
+		}
+
+		if !finded {
+			hostCookiesData = append(hostCookiesData, cookie)
+		}
+
+		j.CookiesData[host] = hostCookiesData
+	} else {
+		j.CookiesData[host] = append(hostCookiesData, cookie)
+	}
+
 }
 
-func (this *Jar) Cookies(u *url.URL) []*http.Cookie {
-	return this.cookies[u.Host]
+// SetCookies - set cookies
+func (j *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	j.lk.Lock()
+	for i := 0; i < len(cookies); i++ {
+		j.addCookie(u.Host, cookies[i])
+	}
+	j.lk.Unlock()
 }
 
-func (this *Jar) ParseCookies(json string) *http.Cookie {
-	c := &http.Cookie{}
-	cookiesObj, err := com.JsonDecode(json)
-	cookies := cookiesObj.(map[string]interface{})
+// Cookies - get cookie
+func (j *Jar) Cookies(u *url.URL) []*http.Cookie {
+	return j.CookiesData[u.Host]
+}
 
+// HTTPClient - http client
+type HTTPClient struct {
+	cookiePath string
+	jar        *Jar
+	client     *http.Client
+}
+
+// NewHTTPClient - new an HTTPClient from cookiePath
+func NewHTTPClient(cookiePath string) *HTTPClient {
+	hc := &HTTPClient{}
+	hc.cookiePath = cookiePath
+	jar := NewJar()
+	jsonData, err := com.ReadFileString(cookiePath)
 	if err == nil {
-		if err == nil {
-			// set cookie
-			c.Name = cookies["Name"].(string)
-			c.Value = cookies["Value"].(string)
-			c.Path = cookies["Path"].(string)
-			c.Domain = cookies["Domain"].(string)
-			c.RawExpires = cookies["RawExpires"].(string)
+		err = json.Unmarshal([]byte(jsonData), jar)
+		if err != nil {
+			log.Warnln("illeage cookies jar file")
 		}
 	}
 
-	return c
+	hc.jar = jar
+
+	hc.client = &http.Client{Transport: nil, CheckRedirect: nil, Jar: hc.jar, Timeout: 0}
+
+	return hc
 }
 
-type Http struct {
-	cookies *Jar
+func (h *HTTPClient) serialze() {
+	jar := h.jar
+	jsonData, err := com.JsonEncode(jar)
+	if err == nil {
+		com.WriteFile(h.cookiePath, string(jsonData))
+	}
 }
 
-func (this *Http) Post(urlstr string, parm url.Values) (string, error) {
-	home := GetHome()
-	u, err := url.Parse(urlstr)
-	if err != nil {
-		return "", err
-	}
-
-	pathOscid := filepath.Join(home, ".osc", "oscid")
-	jar := NewJar()
-
-	// read cookie
-	if com.FileExist(pathOscid) {
-		json, _ := com.ReadFile(pathOscid)
-		c := jar.ParseCookies(json)
-		jar.SetCookies(u, []*http.Cookie{c})
-	}
-
-	// post
-	client := http.Client{nil, nil, jar, 0}
-	resp, err := client.PostForm(urlstr, parm)
+// Post - post method
+func (h *HTTPClient) Post(urlstr string, parm url.Values) (string, error) {
+	resp, err := h.client.PostForm(urlstr, parm)
 
 	if err != nil {
 		return "", err
@@ -84,43 +109,13 @@ func (this *Http) Post(urlstr string, parm url.Values) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	// store cookie
-	cookieMap := jar.Cookies(u)
-	length := len(cookieMap)
-	// log.Greenln(length)
-	if length > 0 {
-		co, err := com.JsonEncode(cookieMap[length-1])
-		if err != nil {
-			return "", err
-		}
-
-		com.WriteFile(pathOscid, co)
-	}
-
+	h.serialze()
 	return string(b), err
 }
 
-func (this *Http) Get(urlstr string) (string, error) {
-	home := GetHome()
-	u, err := url.Parse(urlstr)
-	if err != nil {
-		return "", err
-	}
-
-	pathOscid := filepath.Join(home, ".osc", "oscid")
-	jar := NewJar()
-
-	// read cookie
-	if com.FileExist(pathOscid) {
-		json, _ := com.ReadFile(pathOscid)
-		c := jar.ParseCookies(json)
-		jar.SetCookies(u, []*http.Cookie{c})
-	}
-
-	// get
-	client := http.Client{nil, nil, jar, 0}
-	resp, err := client.Get(urlstr)
+// Get - get method
+func (h *HTTPClient) Get(urlstr string) (string, error) {
+	resp, err := h.client.Get(urlstr)
 	if err != nil {
 		return "", err
 	}
@@ -130,19 +125,6 @@ func (this *Http) Get(urlstr string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	// store cookie
-	cookieMap := jar.Cookies(u)
-	length := len(cookieMap)
-	// log.Greenln(length)
-	if length > 0 {
-		co, err := com.JsonEncode(cookieMap[length-1])
-		if err != nil {
-			return "", err
-		}
-
-		com.WriteFile(pathOscid, co)
-	}
-
+	h.serialze()
 	return string(b), err
 }

@@ -1,14 +1,16 @@
 package login
 
 import (
-	"github.com/duguying/osc/utils"
-	"github.com/gogather/com"
-	"github.com/gogather/com/log"
 	"net/url"
 	"path/filepath"
 	"regexp"
+
+	"github.com/duguying/osc/utils"
+	"github.com/gogather/com"
+	"github.com/gogather/com/log"
 )
 
+// Login - login
 func Login(username string, password string) {
 	home := utils.GetHome()
 	pathPwd := filepath.Join(home, ".osc", "password")
@@ -19,7 +21,9 @@ func Login(username string, password string) {
 	pathUsr := filepath.Join(home, ".osc", "username")
 	com.WriteFile(pathUsr, username)
 
-	http := &utils.Http{}
+	cookiePath := filepath.Join(home, ".osc", "oscid")
+
+	http := utils.NewHTTPClient(cookiePath)
 	response, err := http.Post("https://www.oschina.net/action/user/hash_login", url.Values{
 		"email":      {username},
 		"pwd":        {password},
@@ -58,7 +62,10 @@ func Login(username string, password string) {
 
 // get user_code
 func getUserCode() {
-	http := &utils.Http{}
+	home := utils.GetHome()
+	cookiePath := filepath.Join(home, ".osc", "oscid")
+
+	http := utils.NewHTTPClient(cookiePath)
 	response, err := http.Get("https://www.oschina.net")
 	if err != nil {
 		log.Redln("[Error]", err)
@@ -78,7 +85,6 @@ func getUserCode() {
 		"user_code": userCode,
 	})
 
-	home := utils.GetHome()
 	pathUserCode := filepath.Join(home, ".osc", "userinfo")
 	com.WriteFile(pathUserCode, content)
 }
