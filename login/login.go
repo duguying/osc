@@ -24,7 +24,7 @@ func Login(username string, password string) {
 
 	cookiePath := filepath.Join(home, ".osc", "oscid")
 
-	httpclient := http.NewHTTPClient(cookiePath)
+	httpclient := http.NewHTTPClientWithCookieFile(cookiePath)
 	response, err := httpclient.Post("https://www.oschina.net/action/user/hash_login", url.Values{
 		"email":      {username},
 		"pwd":        {password},
@@ -66,7 +66,7 @@ func getUserCode() {
 	home := utils.GetHome()
 	cookiePath := filepath.Join(home, ".osc", "oscid")
 
-	httpclient := http.NewHTTPClient(cookiePath)
+	httpclient := http.NewHTTPClientWithCookieFile(cookiePath)
 	response, err := httpclient.Get("https://www.oschina.net")
 	if err != nil {
 		log.Redln("[Error]", err)

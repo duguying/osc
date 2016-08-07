@@ -49,7 +49,7 @@ func Tweet(message string) {
 	}
 
 	cookiePath := filepath.Join(home, ".osc", "oscid")
-	httpclient := http.NewHTTPClient(cookiePath)
+	httpclient := http.NewHTTPClientWithCookieFile(cookiePath)
 	response, err := httpclient.Post("https://www.oschina.net/action/tweet/pub", url.Values{
 		"user":      {userId},
 		"user_code": {userCode},
@@ -84,7 +84,7 @@ func Joke() {
 	api := `http://www.tuling123.com/openapi/api?key=380abd77ba6541dd1dee43220c42776b&info=%E8%AE%B2%E4%B8%AA%E7%AC%91%E8%AF%9D`
 	home := utils.GetHome()
 	cookiePath := filepath.Join(home, ".osc", "oscid")
-	httpclient := http.NewHTTPClient(cookiePath)
+	httpclient := http.NewHTTPClientWithCookieFile(cookiePath)
 	msg, err := httpclient.Get(api)
 	if err != nil {
 		log.Redln(err)
@@ -110,7 +110,7 @@ func Weather(location string) {
 	api := `http://www.tuling123.com/openapi/api?key=380abd77ba6541dd1dee43220c42776b&info=%E4%BB%8A%E5%A4%A9` + location + `%E5%A4%A9%E6%B0%94`
 	home := utils.GetHome()
 	cookiePath := filepath.Join(home, ".osc", "oscid")
-	httpclient := http.NewHTTPClient(cookiePath)
+	httpclient := http.NewHTTPClientWithCookieFile(cookiePath)
 	msg, err := httpclient.Get(api)
 	if err != nil {
 		log.Redln(err)
