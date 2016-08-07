@@ -7,6 +7,7 @@ import (
 
 	"github.com/duguying/osc/utils"
 	"github.com/gogather/com"
+	"github.com/gogather/com/http"
 	"github.com/gogather/com/log"
 )
 
@@ -23,8 +24,8 @@ func Login(username string, password string) {
 
 	cookiePath := filepath.Join(home, ".osc", "oscid")
 
-	http := utils.NewHTTPClient(cookiePath)
-	response, err := http.Post("https://www.oschina.net/action/user/hash_login", url.Values{
+	httpclient := http.NewHTTPClient(cookiePath)
+	response, err := httpclient.Post("https://www.oschina.net/action/user/hash_login", url.Values{
 		"email":      {username},
 		"pwd":        {password},
 		"save_login": {"1"},
@@ -65,8 +66,8 @@ func getUserCode() {
 	home := utils.GetHome()
 	cookiePath := filepath.Join(home, ".osc", "oscid")
 
-	http := utils.NewHTTPClient(cookiePath)
-	response, err := http.Get("https://www.oschina.net")
+	httpclient := http.NewHTTPClient(cookiePath)
+	response, err := httpclient.Get("https://www.oschina.net")
 	if err != nil {
 		log.Redln("[Error]", err)
 		return

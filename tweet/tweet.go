@@ -7,6 +7,7 @@ import (
 
 	"github.com/duguying/osc/utils"
 	"github.com/gogather/com"
+	"github.com/gogather/com/http"
 	"github.com/gogather/com/log"
 )
 
@@ -48,8 +49,8 @@ func Tweet(message string) {
 	}
 
 	cookiePath := filepath.Join(home, ".osc", "oscid")
-	http := utils.NewHTTPClient(cookiePath)
-	response, err := http.Post("https://www.oschina.net/action/tweet/pub", url.Values{
+	httpclient := http.NewHTTPClient(cookiePath)
+	response, err := httpclient.Post("https://www.oschina.net/action/tweet/pub", url.Values{
 		"user":      {userId},
 		"user_code": {userCode},
 		"msg":       {message},
@@ -83,8 +84,8 @@ func Joke() {
 	api := `http://www.tuling123.com/openapi/api?key=380abd77ba6541dd1dee43220c42776b&info=%E8%AE%B2%E4%B8%AA%E7%AC%91%E8%AF%9D`
 	home := utils.GetHome()
 	cookiePath := filepath.Join(home, ".osc", "oscid")
-	http := utils.NewHTTPClient(cookiePath)
-	msg, err := http.Get(api)
+	httpclient := http.NewHTTPClient(cookiePath)
+	msg, err := httpclient.Get(api)
 	if err != nil {
 		log.Redln(err)
 	}
@@ -109,8 +110,8 @@ func Weather(location string) {
 	api := `http://www.tuling123.com/openapi/api?key=380abd77ba6541dd1dee43220c42776b&info=%E4%BB%8A%E5%A4%A9` + location + `%E5%A4%A9%E6%B0%94`
 	home := utils.GetHome()
 	cookiePath := filepath.Join(home, ".osc", "oscid")
-	http := utils.NewHTTPClient(cookiePath)
-	msg, err := http.Get(api)
+	httpclient := http.NewHTTPClient(cookiePath)
+	msg, err := httpclient.Get(api)
 	if err != nil {
 		log.Redln(err)
 	}
